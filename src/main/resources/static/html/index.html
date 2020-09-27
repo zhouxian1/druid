@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="en">
+<meta charset="UTF-8">
+<title>页面</title>
+<link href="../static/css/bootstrap-theme.min.css" rel="stylesheet"/>
+<link href="../static/css/bootstrap.min.css" rel="stylesheet"/>
+<style>
+    body, html {
+        /* background: rgba(0,0,0,.1); */
+        color: #000;
+        margin: 0;
+    }
+
+    header {
+        padding-top: 20px;
+    }
+
+    header .title {
+        font-weight: 700;
+        display: inline-block;
+    }
+
+    .content {
+        height: 500px;
+        padding-top: 20px;
+    }
+
+    .outline {
+        height: 100%;
+        color: #555;
+        background-color: #fff;
+        background-image: none;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075);
+        box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075);
+        -webkit-transition: border-color ease-in-out .15s, -webkit-box-shadow ease-in-out .15s;
+        -o-transition: border-color ease-in-out .15s, box-shadow ease-in-out .15s;
+        transition: border-color ease-in-out .15s, box-shadow ease-in-out .15s;
+    }
+
+    .content .title {
+        width: 100%;
+        height: 28px;
+        line-height: 28px;
+        text-align: center;
+        border-bottom: 1px solid #ccc;
+        font-weight: 400;
+    }
+
+    .add {
+        border-bottom: 1px solid #ccc;
+        width: calc(100% + 30px);
+        margin-left: -15px;
+        margin-bottom: 10px;
+        padding: 200px 0 10px 15px;
+        position: relative;
+    }
+
+    .add span {
+        position: absolute;
+        bottom: -10px;
+        color: #ccc;
+    }
+
+    .addInputParam .add span {
+        left: -2px;
+    }
+
+    .addOuputParam .add span {
+        right: -2px;
+    }
+
+    .mask {
+        position: fixed;
+        overflow: auto;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        background: rgba(0, 0, 0, 0.65);
+        z-index: 99;
+    }
+
+    .tableSource {
+        position: relative;
+    }
+
+    .selectedTable {
+        position: absolute;
+        left: 10px;
+        right: 10px;
+        color: #555;
+        background-color: #fff;
+        background-image: none;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        margin-top: 4px;
+        padding-left: 8px;
+        z-index: 2;
+        display: none;
+    }
+
+    .tableList {
+        display: none;
+        position: fixed;
+        text-align: center;
+    }
+
+    .tableList > div {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        width: 800px;
+        height: 600px;
+        transform: translate(-50%, -50%);
+    }
+
+    .tableList .tables {
+        text-align: left;
+        padding: 20px;
+        height: calc(100% - 90px);
+        overflow: auto;
+    }
+
+    .allParamsList {
+        display: flex;
+    }
+
+    .tableParam {
+        flex: 1;
+        height: 100%;
+    }
+
+    .paramsList {
+        width: 100%;
+        height: calc(100% - 30px);
+        overflow: auto;
+    }
+
+    .inputParamItem {
+        padding-top: 20px;
+        height: 56px;
+        line-height: 36px;
+    }
+
+    .previewTable {
+        padding-top: 20px;
+    }
+
+    footer {
+        padding-top: 20px;
+    }
+</style>
+</head>
+<body>
+<header>
+    <div class="container">
+        <div class="row">
+            <div class="dataSource col-xs-3 col-sm-4">
+                <p class="title col-sm-3">数据源:</p>
+                <div class="col-sm-9">
+                    <select class="form-control" name="dataSource" id="dataSource">
+                    </select>
+                </div>
+            </div>
+            <div class="tableSource col-xs-3 col-sm-4">
+                <p class="title col-sm-3 ">数据表</p>
+                <div class="col-sm-6">
+                    <input type="text" class="form-control" readonly="true" value="查看已选择数据表" onblur=checkTable(false)
+                           onfocus=checkTable(true)>
+                    <div class="selectedTable">
+                    </div>
+                </div>
+                <div class="selectTable col-sm-3">
+                    <button class="btn btn-default" onclick="showTableSelect(true)">选择数据表</button>
+                    <div class="tableList mask">
+                        <div class="outline content">
+                            <div class="title">
+                                表格列表
+                            </div>
+                            <div class="tables">
+
+                            </div>
+                            <div class="buttons">
+                                <button class="btn btn-default" onclick="changeSelectTable()">确定</button>
+                                <button class="btn btn-default" onclick="showTableSelect(false)">取消</button>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+            <div class="dataSource col-xs-3 col-sm-4">
+                <p class="title col-sm-4">展现形式:</p>
+                <div class="col-sm-8">
+                    <select class="form-control" name="showFrom" id="showFrom">
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</header>
+<div class="content container">
+    <div class="inputParam outline col-sm-2">
+        <title>输入字段</title>
+        <div class="title">输入字段</div>
+        <div class="inparamsList">
+        </div>
+    </div>
+    <div class="addInputParam editParam col-sm-1">
+        <div class="add">
+            <button class="btn btn-default" onclick="addInParam()">添加</button>
+            <span></span>
+        </div>
+        <div class="delete">
+            <button class="btn btn-default" onclick="deleteInParam()">删除</button>
+        </div>
+    </div>
+    <div class="allParamsList outline col-sm-6">
+    </div>
+    <div class="addOuputParam editParam col-sm-1">
+        <div class="add">
+            <button class="btn btn-default" onclick="addOutParam()">添加</button>
+            <span>></span></div>
+        <div class="delete">
+            <button class="btn btn-default" onclick="deleteOutParam()">删除</button>
+        </div>
+    </div>
+    <div class="ouputParam outline col-sm-2">
+        <title>输出字段</title>
+        <div class="title">输出字段</div>
+        <div class="outparamsList">
+        </div>
+    </div>
+</div>
+<div class="preview container">
+    <div class="portName">
+        <div class="form-group">
+            <div class="col-sm-2">接口名称:</div>
+            <div class="col-sm-10">
+                <input type="text" class="form-control" id="ztName" placeholder="请输入接口名称"/>
+            </div>
+        </div>
+    </div>
+    <div class="row" style="height: 60px;width: 100%"></div>
+    <div class="inputParma">
+        <div class="col-sm-2">输入参数:</div>
+        <div class="col-sm-10 inputParamList">
+        </div>
+    </div>
+</div>
+<footer class="container">
+    <div class="row">
+        <div class="col-sm-offset-9 col-sm-1">
+            <a class="btn btn-default" role="button" data-toggle="modal"  id="preview" onclick="showResult()">结果预览</a>
+        </div>
+        <div class=" col-sm-1">
+            <button class="btn btn-default" type="reset">重置</button>
+        </div>
+        <div class="col-sm-1">
+            <button class="btn btn-default"  onclick="save()">提交</button>
+        </div>
+    </div>
+</footer>
+<div class="modal fade" id="showResult" tabindex="-1" role="dialog" aria-labelledby="showResult" aria-hidden="true">
+    <div class="modal-dialog outline" style="width: 500px;height: 700px;">
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+                X
+            </button>
+            <h4 class="modal-title" id="title">
+                <b>返回结果集展示</b>
+            </h4>
+        </div>
+        <div class="modal-body" >
+            <div>
+                <pre  id="result" style="height: 600px;width: 100%"></pre>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="../static/js/jquery.min.js"></script>
+<script src="../static/js/bootstrap.min.js"></script>
+<script>
+    var dataBaseUrl;
+    var dataBaseName;
+    var checkedParam = {};//管理所有输入参数;//管理所有输入参数
+    var outputCheckedParam = {};//管理所有输出参数
+    var requestParam={};
+    $(function () {
+        $(".previewTable").hide();
+        $.ajax({
+            url: '/dzh/getDatasource',
+            success: function (result) {
+                for (index in result) {
+                    $("#dataSource").append("<option value=" + result[index].dataBaseUrl + ">" + result[index].dataBaseName + "</option>");
+                }
+            },
+            dataType: "json"
+        });
+        $.ajax({
+            url: '/showFrom/getShowFromList',
+            success: function (result) {
+                for (index in result) {
+                    $("#showFrom").append("<option value=" + result[index].showFromValue + ">" + result[index].showFromName + "</option>");
+                }
+            },
+            dataType: "json"
+        })
+
+    });
+
+    //改变选择的表格
+    function changeSelectTable() {
+        console.log('改变选择的表格');
+        $('.tableList').hide();
+        $(".allParamsList").empty();
+        $("input[name='tableName']:checked").checke;
+        $("input[name='tableName']:checked").each(function (j) {
+            var tableName=$(this).val();
+            $(".allParamsList").append(" <div class=\"tableParam\">\n" +
+                "<div class=\"title\">"+$(this).val()+"</div>\n" +
+                "<div class=\"paramsList\">\n"+
+                "</div>\n"+
+                "</div>");
+            $.ajax({
+                url:"/dzh/getColumnAndComments",
+                data: {
+                    tableName:tableName ,
+                    dataBaseUrl: dataBaseUrl
+                },
+                success: function (result) {
+                    for (index in result) {
+                        $(".paramsList").append("<div class=\"param\"><input class=\"checkbox-input\" type=\"checkbox\" name='columnName' value="+result[index].columnName+"> <span>"+result[index].columnDes+"</span></div>")
+                    }
+                },
+                dataType: "json"
+            })
+        })
+
+    }
+
+    //显示表格选择弹窗
+    function showTableSelect(boolean) {
+        if (boolean) {
+            $('.tableList').show();
+            $(".tables").empty();
+            dataBaseUrl = $("#dataSource option:selected").val();
+            dataBaseName = $("#dataSource option:selected").text();
+            $.ajax({
+                url: "/dzh/getTables",
+                data: {
+                    dataBaseName: dataBaseName,
+                    dataBaseUrl: dataBaseUrl
+                },
+                success: function (result) {
+                    for (index in result) {
+                        $(".tables").append("<div class=\"table\"><input class=\"checkbox-input\" name=\"tableName\" type=\"checkbox\" value="+result[index].tableName+" >\n" +
+                            "                                    <span>" + result[index].tableDes + "</span></div>")
+                    }
+                },
+                dataType: "json"
+            })
+        } else {
+            $('.tableList').hide();
+        }
+        console.log('显示表格选择弹窗');
+    }
+
+    function checkTable(boolean) {
+        if (boolean) {
+            $('.selectedTable').show();
+            $(".selectedTable").empty();
+            $("input[name='tableName']:checked").each(function (j) {
+                var tableName=$(this).val();
+                $(".selectedTable").append("<div value=\"查看已选择数据表\">"+$(this).val()+"</div>");
+            })
+
+        } else {
+            $('.selectedTable').hide();
+        }
+    }
+//添加参数到输入参数 prev
+     function  addInParam() {
+         $(".paramsList input[name='columnName']:checked").each(function (i) {
+             var value = $(this).val();
+             var text = $(this).next().text();
+             var tableName = $(this).parent().parent().prev().text();
+             //避免重复添加  。。简陋避免。。。
+             if(checkedParam[value]) {
+                 return;
+             }
+             checkedParam[value] = {
+                 value:value,
+                 text:text,
+                 tableName:tableName
+             };
+             $(".inparamsList").append(
+                 "<div class=\"param\">" +
+                 "<input  class=\"checkbox-input\" name='inparam' type=\"checkbox\" value="+value+">" +
+                 "<input  class=\"checkbox-input\" name='tableName' style='display: none' type=\"text\" value="+tableName+">" +
+                 "<span>"+text+"</span>" +
+                 "</div>");
+
+             $.ajax({
+                 url: "/dzh/getColumnValue",
+                 data: {
+                     columnName: value,
+                     tableName: tableName,
+                     dataBaseUrl: dataBaseUrl
+                 },
+                 success: function (result) {
+
+                     var newParam = "<div class=\"inputParamItem\"name=\"" + value + "\">\n" +
+                         "<div class=\"col-sm-2\" >"+text+":</div>\n" +
+                         "<div class=\"col-sm-10\">\n" +
+                         "<select class=\"form-control\">\n";
+                     //参数列表
+                     for (var index in result) {//.preview .inputParamList
+                         newParam +="<option>"+result[index]+"</option>";
+                     }
+
+                     newParam += "</select>\n" +
+                         "</div>\n" +
+                         "</div>";
+                     $(".preview .inputParamList").append(newParam);
+                 },
+                 dataType: "json"
+             });
+
+         });
+         $('.allParamsList input:checked').attr('checked',false);
+     }
+
+     //设置输入参数所有可选数据项   e.....有点乱先不写了，就在删除的时候吧对应的select删除掉吧。。。gnn
+    function setInparamAvalible(){
+        for(var key in checkedParam){
+
+        }
+    }
+//删除输入参数
+    function  deleteInParam() {
+        //checkedParam 中移除选中的项
+        $(".inparamsList input:checked").each(function (i) {
+            var value = $(this).val();
+            $(".preview .inputParamItem[name='"+value+"']").remove();
+            checkedParam[value] = undefined;
+            $(this).checked=false;
+        });
+        $('.inparamsList input:checked').parent().remove();
+        // $(".preview .inputParamList")
+    }
+
+    //添加参数到输入参数
+    function  addOutParam() {
+        $(".paramsList input[name='columnName']:checked").each(function (i) {
+            var value = $(this).val();
+            var text = $(this).next().text();
+            var tableName = $(this).parent().parent().prev().text();
+            //避免重复添加  。。简陋避免。。。
+            if(outputCheckedParam[value]) {
+                return;
+            }
+            outputCheckedParam[value] = {
+                value:value,
+                text:text,
+                tableName:tableName
+            };
+            $(".outparamsList").append(" <div class=\"param\"><input class=\"checkbox-input\" name='outparam' type=\"checkbox\" value="+$(this).val()+"><span>"+$(this).next().text()+"</span></div>");
+        });
+        $('.allParamsList input:checked').attr('checked',false);
+    }
+    //删除输入参数
+    function  deleteOutParam() {
+        $(".outparamsList input:checked").each(function (i) {
+            var value = $(this).val();
+            //$(".preview .inputParamItem[name='"+value+"']").remove();
+            outputCheckedParam[value] = undefined;
+        });
+        $('.outparamsList input:checked').parent().remove();
+    }
+
+    function getParam() {
+        var outParma;
+        var tableName;
+        var inParma;
+        var count=0;
+        var condition;
+        for(var key in outputCheckedParam){
+            if(count==0){
+                outParma=outputCheckedParam[key].value;
+            }else{
+                outParma+=','+outputCheckedParam[key].value;
+            }
+            tableName=outputCheckedParam[key].tableName;
+            count++;
+        }
+        count=0;
+        for(var key in checkedParam){
+            if(count==0){
+                inParma=checkedParam[key].value;
+                condition= checkedParam[key].value+"="+$(".inputParamItem[name='"+checkedParam[key].value+"']  option:selected").text()+"";
+            }else{
+                inParma+=','+checkedParam[key].value;
+                condition+=','+checkedParam[key].value+"="+$(".inputParamItem[name='"+checkedParam[key].value+"']  option:selected").text()+"";
+
+            }
+            count++;
+        }
+        ztName=$("#ztName").val();
+        requestParam={
+            ztName:ztName,
+            url: dataBaseUrl,
+            tableName: tableName,
+            conditions:condition,
+            outParma:outParma
+        }
+    }
+
+
+    function  showResult() {
+        getParam();
+        if(requestParam.ztName==""){
+            alert("请输入主题名称！");
+            return;
+        }
+        if(requestParam.conditions==undefined){
+            alert("请选择输入参数！");
+            return;
+        }
+        if(requestParam.outParma==undefined){
+            alert("请选择输出参数！");
+            return;
+        }
+        if(requestParam.tableName==undefined){
+            alert("请选择数据表！");
+            return;
+        }
+        $.ajax({
+            url: "/dzh/getData",
+            data: requestParam,
+            success: function (result) {
+                console.log(result);
+
+                $("#result").text(JSON.stringify(result,null,"\t"));
+            },
+            dataType: "json"
+        });
+        $("#showResult").modal("show");
+
+
+    }
+
+    function save() {
+        getParam();
+        if(requestParam.ztName==""){
+            alert("请输入主题名称！");
+            return;
+        }
+        if(requestParam.conditions==undefined){
+            alert("请选择输入参数！");
+            return;
+        }
+        if(requestParam.outParma==undefined){
+            alert("请选择输出参数！");
+            return;
+        }
+        if(requestParam.tableName==undefined){
+            alert("请选择数据表！");
+            return;
+        }
+        $.ajax({
+            url: "/info/insertZtInfo",
+            data: requestParam,
+            success: function (result) {
+                console.log(result);
+            },
+            dataType: "json"
+        })
+    }
+
+</script>
+
+</body>
+</html>
